@@ -42,13 +42,14 @@ class Controller:
             status = {}
             for d in self.devices:
                 d.connect()
+                self.set_fan_led_fixed_colour(d)
             while True:
                 for d in self.devices:
                     d.initialize()
                     status[d.description] = d.get_status()  # This gives fan speed
                     sensor_temp = self.get_sensor_temp(self.cpu_sensor)
                     self.set_fan_speed(d, int(sensor_temp))
-                    time.sleep(self.update_interval)
+                    time.sleep(args['--interval'])
         except KeyboardInterrupt:
             pass
         finally:
@@ -72,6 +73,11 @@ class Controller:
                 return sensors[sensor]
         except:
             pass
+
+    @staticmethod
+    def set_fan_led_fixed_colour(d):
+        d.set_color('led1', 'fixed', colors=[[0x00, 0x00, 0xff]], start_led=1, maximum_leds=64)
+        d.set_color('led2', 'fixed', colors=[[0x00, 0x00, 0xff]], start_led=1, maximum_leds=48)
 
     def set_fan_speed(self, device, sensor_temp):
         duty = 100
@@ -110,9 +116,6 @@ class Controller:
             for c in self.channels:
                 device.set_fixed_speed(channel=c, duty=duty)
 
-# controller = next(liquidctl.find_liquidctl_devices(match='commander pro'))
-# with controller.connect():
-#     controller.set_color(channel='led1', mode='fixed', colors=[...])
 
 
 if __name__ == "__main__":
